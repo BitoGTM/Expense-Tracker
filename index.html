@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css?family=Titillium+Web&display=swap" 
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <!-- Add Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header>
@@ -49,6 +51,19 @@
             </form>
         </div>
     </section>
+
+    <!-- Add Charts Section -->
+    <section class="content charts-container">
+        <h3 class="secondTitle">Expense Analytics</h3>
+        <div class="chart-tabs">
+            <button id="typeChartBtn" class="chart-tab active">By Type</button>
+            <button id="dateChartBtn" class="chart-tab">By Date</button>
+        </div>
+        <div class="chart-area">
+            <canvas id="expenseChart"></canvas>
+        </div>
+    </section>
+
     <section class="content">
         <table class="table">
             <thead>

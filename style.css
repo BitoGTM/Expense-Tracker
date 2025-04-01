@@ -23,6 +23,7 @@ body{
     padding: 3%;
     padding-left: 5%;
     padding-right: 5%;
+    margin-bottom: 20px;
 }
 
 .secondTitle{
@@ -82,4 +83,43 @@ button{
 a{
     text-decoration: underline;
     cursor: pointer;
+}
+
+/* Chart styles */
+.charts-container {
+    margin-top: 20px;
+}
+
+.chart-area {
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 15px;
+    margin-top: 15px;
+    height: 300px;
+}
+
+.chart-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.chart-tab {
+    width: auto;
+    padding: 8px 15px;
+    margin: 0;
+    background-color: #042159;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.9em;
+    transition: background-color 0.3s;
+}
+
+.chart-tab.active {
+    background-color: #04BF8A;
+}
+
+.deleteButton {
+    color: #ff6b6b;
 }
