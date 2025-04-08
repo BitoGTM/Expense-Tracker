@@ -1,5 +1,7 @@
 # Expense Tracker
 
+//Written by Bito Wingman
+
 A simple, intuitive web application to track personal expenses. This app allows users to add, view, and delete expenses with an easy-to-use interface.
 
 ## 📋 Table of Contents
