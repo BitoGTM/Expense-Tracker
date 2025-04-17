@@ -1,1 +1,135 @@
-document.getElementById(\"expForm\").addEventListener(\"submit\", addExpense);\n\n// initial array of expenses, reading from localStorage\nconst expenses = JSON.parse(localStorage.getItem(\"expenses\")) || [];\n\nfunction addExpense(e) {\n  e.preventDefault();\n\n  let type = document.getElementById(\"type\").value;\n  let name = document.getElementById(\"name\").value;\n  let date = document.getElementById(\"date\").value;\n  let amount = document.getElementById(\"amount\").value;\n\n  if (type != \"chooseOne\" && name.length > 0 && date != 0 && amount > 0) {\n    const expense = {\n      type,\n      name,\n      date,\n      amount,\n      id: expenses.length > 0 ? expenses[expenses.length - 1].id + 1 : 1,\n    };\n\n    expenses.push(expense);\n    // localStorage\n    localStorage.setItem(\"expenses\", JSON.stringify(expenses));\n    console.log(expenses);\n    console.log(expense);\n\n    document.getElementById('expForm').reset();\n    showExpenses();\n    showExpenseSummary();\n  }\n}\n\nconst showExpenses = () => {\n    const expenseTable = document.getElementById('expenseTable');\n\n    expenseTable.innerHTML = '';\n\n    for(let i = 0; i < expenses.length; i++){\n        expenseTable.innerHTML += `\n            <tr>\n                <td>${expenses[i].type}</td>\n                <td>${expenses[i].name}</td>\n                <td>${expenses[i].date}</td>\n                <td>$${expenses[i].amount}</td>\n                <td><a class=\"deleteButton\" onclick=\"deleteExpense(${expenses[i].id})\">\n                    Delete</td>\n            </tr>\n        `;\n    }\n}\n\nconst deleteExpense = (id) => {\n    for(let i = 0; i < expenses.length; i++){\n        if(expenses[i].id == id){\n            expenses.splice(i, 1);\n        }\n    }\n\n    // localStorage\n    localStorage.setItem('expenses', JSON.stringify(expenses));\n    showExpenses();\n    showExpenseSummary();\n}\n\nconst calculateExpenseSummary = () => {\n    // Initialize summary object\n    const summary = {\n        total: 0,\n        breakdown: {\n            Card: 0,\n            Cash: 0,\n            Cryptocoin: 0,\n            Other: 0\n        }\n    };\n    \n    // Calculate totals\n    for(let i = 0; i < expenses.length; i++) {\n        const amount = parseFloat(expenses[i].amount);\n        summary.total += amount;\n        \n        // Add to type breakdown\n        if (summary.breakdown.hasOwnProperty(expenses[i].type)) {\n            summary.breakdown[expenses[i].type] += amount;\n        } else {\n            summary.breakdown.Other += amount;\n        }\n    }\n    \n    // Round all numbers to 2 decimal places\n    summary.total = summary.total.toFixed(2);\n    for (const type in summary.breakdown) {\n        summary.breakdown[type] = summary.breakdown[type].toFixed(2);\n    }\n    \n    return summary;\n}\n\nconst showExpenseSummary = () => {\n    const summaryContainer = document.getElementById('expenseSummary');\n    const summary = calculateExpenseSummary();\n    \n    let summaryHTML = `\n        <h3 class=\"secondTitle\">Expense Summary</h3>\n        <div class=\"summary-card\">\n            <div class=\"summary-total\">Total Expenses: $${summary.total}</div>\n            <div class=\"summary-breakdown\">\n    `;\n    \n    // Add breakdown by type\n    for (const type in summary.breakdown) {\n        summaryHTML += `\n            <div class=\"summary-item\">\n                <div>${type}</div>\n                <div>$${summary.breakdown[type]}</div>\n            </div>\n        `;\n    }\n    \n    summaryHTML += `\n            </div>\n        </div>\n    `;\n    \n    summaryContainer.innerHTML = summaryHTML;\n}\n\nshowExpenses();\nshowExpenseSummary();
+document.getElementById(\"expForm\").addEventListener(\"submit\", addExpense);
+
+// Two unused variables
+const unusedVariable1 = "This variable is never used";
+const unusedVariable2 = 42; // Another unused variable
+
+// initial array of expenses, reading from localStorage
+const expenses = JSON.parse(localStorage.getItem(\"expenses\")) || [];
+
+function addExpense(e) {
+  e.preventDefault();
+
+  let type = document.getElementById(\"type\").value;
+  let name = document.getElementById(\"name\").value;
+  let date = document.getElementById(\"date\").value;
+  let amount = document.getElementById(\"amount\").value;
+
+  if (type != \"chooseOne\" && name.length > 0 && date != 0 && amount > 0) {
+    const expense = {
+      type,
+      name,
+      date,
+      amount,
+      id: expenses.length > 0 ? expenses[expenses.length - 1].id + 1 : 1,
+    };
+
+    expenses.push(expense);
+    // localStorage
+    localStorage.setItem(\"expenses\", JSON.stringify(expenses));
+    console.log(expenses);
+    console.log(expense);
+
+    document.getElementById('expForm').reset();
+    showExpenses();
+    showExpenseSummary();
+  }
+}
+
+const showExpenses = () => {
+    const expenseTable = document.getElementById('expenseTable');
+
+    expenseTable.innerHTML = '';
+
+    for(let i = 0; i < expenses.length; i++){
+        expenseTable.innerHTML += `
+            <tr>
+                <td>${expenses[i].type}</td>
+                <td>${expenses[i].name}</td>
+                <td>${expenses[i].date}</td>
+                <td>$${expenses[i].amount}</td>
+                <td><a class=\"deleteButton\" onclick=\"deleteExpense(${expenses[i].id})\">
+                    Delete</td>
+            </tr>
+        `;
+    }
+}
+
+const deleteExpense = (id) => {
+    for(let i = 0; i < expenses.length; i++){
+        if(expenses[i].id == id){
+            expenses.splice(i, 1);
+        }
+    }
+
+    // localStorage
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+    showExpenses();
+    showExpenseSummary();
+}
+
+const calculateExpenseSummary = () => {
+    // Initialize summary object
+    const summary = {
+        total: 0,
+        breakdown: {
+            Card: 0,
+            Cash: 0,
+            Cryptocoin: 0,
+            Other: 0
+        }
+    };
+    
+    // Calculate totals
+    for(let i = 0; i < expenses.length; i++) {
+        const amount = parseFloat(expenses[i].amount);
+        summary.total += amount;
+        
+        // Add to type breakdown
+        if (summary.breakdown.hasOwnProperty(expenses[i].type)) {
+            summary.breakdown[expenses[i].type] += amount;
+        } else {
+            summary.breakdown.Other += amount;
+        }
+    }
+    
+    // Round all numbers to 2 decimal places
+    summary.total = summary.total.toFixed(2);
+    for (const type in summary.breakdown) {
+        summary.breakdown[type] = summary.breakdown[type].toFixed(2);
+    }
+    
+    return summary;
+}
+
+const showExpenseSummary = () => {
+    const summaryContainer = document.getElementById('expenseSummary');
+    const summary = calculateExpenseSummary();
+    
+    let summaryHTML = `
+        <h3 class=\"secondTitle\">Expense Summary</h3>
+        <div class=\"summary-card\">
+            <div class=\"summary-total\">Total Expenses: $${summary.total}</div>
+            <div class=\"summary-breakdown\">
+    `;
+    
+    // Add breakdown by type
+    for (const type in summary.breakdown) {
+        summaryHTML += `
+            <div class=\"summary-item\">
+                <div>${type}</div>
+                <div>$${summary.breakdown[type]}</div>
+            </div>
+        `;
+    }
+    
+    summaryHTML += `
+            </div>
+        </div>
+    `;
+    
+    summaryContainer.innerHTML = summaryHTML;
+}
+
+showExpenses();
+showExpenseSummary();

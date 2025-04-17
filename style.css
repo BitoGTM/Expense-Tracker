@@ -1,1 +1,116 @@
-*{\n    margin:0;\n    font-family: 'Titillium Web', sans-serif;\n}\n\nbody{\n    background:#042159;\n    color:#77D9AB;\n}\n\n.title{\n    width: 500px;\n    color:#0869A6;\n    margin:5% auto;\n    text-align: center;\n}\n\n\n.content{\n    width: 580px;\n    margin: 0 auto;\n    background-color:#0869A6;\n    padding: 3%;\n    padding-left: 5%;\n    padding-right: 5%;\n}\n\n.secondTitle{\n    text-align:left;\n    margin: 2% 0;\n    font-weight: 100;\n}\n\n.form{\n    padding: 5px;\n}\n\n.formLine{\n    display: inline-flex;\n    padding: 5px 0px;\n}\n\n.left{\n    float: left;\n}\n\n.right{\n    float:right;\n    margin-right: 90px;\n}\n\ninput, select{\n    width: 130px;\n    margin-left: 10px;\n}\n\n/* table style */\ntable{\n    width: 100%;\n}\n\nthead{\n    background-color:#042159;\n    line-height: 30px;\n}\n\n/* Button */\n\nbutton{\n    width: 200px;\n    color:#fff; \n    padding: 10px;\n    text-align: center;\n    font-size: 1.1em;\n    line-height: 20px;\n    background-color: #04BF8A;\n    border-radius: 5px;\n    margin: 14px 25%;\n    cursor: pointer;\n}\n\na{\n    text-decoration: underline;\n    cursor: pointer;\n}\n\n/* Expense Summary Styles */\n#expenseSummary {\n    margin-bottom: 20px;\n}\n\n.summary-card {\n    background-color: #042159;\n    padding: 10px;\n    border-radius: 5px;\n    margin-bottom: 10px;\n}\n\n.summary-total {\n    font-size: 1.2em;\n    font-weight: bold;\n    margin-bottom: 10px;\n}\n\n.summary-breakdown {\n    display: flex;\n    justify-content: space-between;\n    flex-wrap: wrap;\n}\n\n.summary-item {\n    flex: 1;\n    min-width: 100px;\n    padding: 5px;\n    text-align: center;\n}
+*{
+    margin:0;
+    font-family: 'Titillium Web', sans-serif;
+}
+
+body{
+    background:#ffff00;
+    color:#77D9AB;
+}
+
+.title{
+    width: 500px;
+    color:#0869A6;
+    margin:5% auto;
+    text-align: center;
+}
+
+
+.content{
+    width: 580px;
+    margin: 0 auto;
+    background-color:#0869A6;
+    padding: 3%;
+    padding-left: 5%;
+    padding-right: 5%;
+}
+
+.secondTitle{
+    text-align:left;
+    margin: 2% 0;
+    font-weight: 100;
+}
+
+.form{
+    padding: 5px;
+}
+
+.formLine{
+    display: inline-flex;
+    padding: 5px 0px;
+}
+
+.left{
+    float: left;
+}
+
+.right{
+    float:right;
+    margin-right: 90px;
+}
+
+input, select{
+    width: 130px;
+    margin-left: 10px;
+}
+
+/* table style */
+table{
+    width: 100%;
+}
+
+thead{
+    background-color:#042159;
+    line-height: 30px;
+}
+
+/* Button */
+
+button{
+    width: 200px;
+    color:#fff; 
+    padding: 10px;
+    text-align: center;
+    font-size: 1.1em;
+    line-height: 20px;
+    background-color: #04BF8A;
+    border-radius: 5px;
+    margin: 14px 25%;
+    cursor: pointer;
+}
+
+a{
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Expense Summary Styles */
+#expenseSummary {
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    background-color: #042159;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.summary-total {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.summary-breakdown {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.summary-item {
+    flex: 1;
+    min-width: 100px;
+    padding: 5px;
+    text-align: center;
+}
