@@ -99,7 +99,34 @@ let activeFilters = {
 // Initialize the page
 initializePage();
 
+// Clone past-due recurring expenses & bump their dates
+function migrateRecurring() {
+    const today = new Date().toISOString().substr(0,10);
+    expenses.slice().forEach(exp => {
+      if (exp.recurring && exp.nextDate && exp.nextDate <= today) {
+        // Notify if due today
+        if (Notification.permission === 'granted') {
+          new Notification('Expense Reminder', {
+            body: `${exp.name}: $${exp.amount.toFixed(2)} is due today.`
+          });
+        }
+        // Clone instance
+        const cloned = { ...exp };
+        cloned.id = expenses[expenses.length-1].id + 1;
+        cloned.date = exp.nextDate;
+        // Compute next due date
+        cloned.nextDate = computeNextDate(new Date(exp.nextDate), exp.frequency)
+                            .toISOString().substr(0,10);
+        expenses.push(cloned);
+        // Advance original’s nextDate so we don’t loop
+        exp.nextDate = cloned.nextDate;
+      }
+    });
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+  }
+  
 function initializePage() {
+    migrateRecurring(); 
     populateCategoryDropdowns();
     showExpenses();
     updateBudgetOverview();
@@ -108,6 +135,10 @@ function initializePage() {
     // Render initial chart if there are expenses
     if (expenses.length > 0) {
         renderChart('category');
+    }
+      // ask once for browser notifications
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
     }
 }
 
@@ -208,6 +239,12 @@ function addExpense(e) {
     let name = document.getElementById("name").value;
     let date = document.getElementById("date").value;
     let amount = document.getElementById("amount").value;
+    // ▼ Recurrence fields ▼
+    let recurring = document.getElementById('recurring').checked;
+    let frequency = recurring 
+        ? document.getElementById('recurrence').value 
+        : null;
+    
 
     if (
         category !== "chooseOne" && 
@@ -216,6 +253,7 @@ function addExpense(e) {
         name.length > 0 && 
         date && 
         amount > 0
+        
     ) {
         const expense = {
             category,
@@ -224,6 +262,13 @@ function addExpense(e) {
             name,
             date,
             amount: parseFloat(amount), // Convert to number for calculations
+            recurring,       // true/false
+            frequency,       // "daily" | "weekly" | "monthly" | null
+            nextDate: recurring 
+              ? computeNextDate(new Date(date), frequency)
+                  .toISOString().substr(0,10)
+              : null,
+      
             id: expenses.length > 0 ? expenses[expenses.length - 1].id + 1 : 1,
         };
 
@@ -578,6 +623,21 @@ function migrateOldData() {
         window.location.reload();
     }
 }
+/**
+ * Return next occurrence date based on frequency.
+ */
+function computeNextDate(dateObj, frequency) {
+    const next = new Date(dateObj);
+    if (frequency === 'daily') {
+      next.setDate(next.getDate() + 1);
+    } else if (frequency === 'weekly') {
+      next.setDate(next.getDate() + 7);
+    } else if (frequency === 'monthly') {
+      next.setMonth(next.getMonth() + 1);
+    }
+    return next;
+  }
+  
 
 // Call data migration function on load
 migrateOldData();

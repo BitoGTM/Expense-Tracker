@@ -62,6 +62,23 @@
                     <input type="text" id="amount">
                     
                 </div>
+                    <!-- inside <form id="expForm">, before the Add button -->
+                    <div class="formLine left">
+                        <label for="recurring">
+                        <input type="checkbox" id="recurring" />
+                        Recurring?
+                        </label>
+                    </div>
+                    <div class="formLine right">
+                        <label for="recurrence">
+                        Frequency:
+                        <select id="recurrence" disabled>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                        </label>
+                    </div>
                 <button type="submit" class="buttonSave">Add a new expense</button>
             </form>
         </div>
@@ -140,6 +157,11 @@
             </tbody>
         </table>
     </section>
+    <script>
+        document.getElementById('recurring').addEventListener('change', e => {
+          document.getElementById('recurrence').disabled = !e.target.checked;
+        });
+      </script>      
     <script src="app.js"></script>
 </body>
 </html>
