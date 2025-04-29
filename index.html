@@ -13,6 +13,12 @@
     <link rel="stylesheet" href="style.css">
     <!-- Add Chart.js library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Add jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Add SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Add Tesseract.js for OCR -->
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
 </head>
 <body>
     <header>
@@ -157,11 +163,89 @@
             </tbody>
         </table>
     </section>
+
+    <!-- Add Export Section -->
+    <section class="content export-container">
+        <h3 class="secondTitle">Export & Reports</h3>
+        <div class="export-form">
+            <div class="formLine">
+                <span for="exportType">Export Type:</span>
+                <select id="exportType">
+                    <option value="pdf">PDF Report</option>
+                    <option value="excel">Excel Spreadsheet</option>
+                    <option value="email">Email Report</option>
+                </select>
+            </div>
+            <div class="formLine">
+                <span for="dateRange">Date Range:</span>
+                <select id="dateRange">
+                    <option value="all">All Time</option>
+                    <option value="month">This Month</option>
+                    <option value="year">This Year</option>
+                    <option value="custom">Custom Range</option>
+                </select>
+            </div>
+            <div id="customDateRange" class="formLine" style="display: none;">
+                <span for="startDate">Start Date:</span>
+                <input type="date" id="startDate">
+                <span for="endDate">End Date:</span>
+                <input type="date" id="endDate">
+            </div>
+            <button id="exportBtn" class="buttonSave">Export</button>
+        </div>
+    </section>
+
+    <!-- Add Currency Settings -->
+    <section class="content currency-container">
+        <h3 class="secondTitle">Currency Settings</h3>
+        <div class="currency-form">
+            <div class="formLine">
+                <span for="baseCurrency">Base Currency:</span>
+                <select id="baseCurrency">
+                    <option value="USD">USD - US Dollar</option>
+                    <option value="EUR">EUR - Euro</option>
+                    <option value="GBP">GBP - British Pound</option>
+                    <option value="JPY">JPY - Japanese Yen</option>
+                    <option value="INR">INR - Indian Rupee</option>
+                </select>
+            </div>
+            <div class="formLine">
+                <span for="exchangeRate">Exchange Rate:</span>
+                <input type="number" id="exchangeRate" step="0.0001" value="1.0000">
+            </div>
+            <button id="updateCurrencyBtn" class="buttonSave">Update Currency</button>
+        </div>
+    </section>
+
+    <!-- Add Receipt Management -->
+    <section class="content receipt-container">
+        <h3 class="secondTitle">Receipt Management</h3>
+        <div class="receipt-form">
+            <div class="formLine">
+                <span for="receiptUpload">Upload Receipt:</span>
+                <input type="file" id="receiptUpload" accept="image/*">
+            </div>
+            <div id="receiptPreview" class="receipt-preview"></div>
+            <div id="receiptDetails" class="receipt-details"></div>
+            <button id="processReceiptBtn" class="buttonSave">Process Receipt</button>
+        </div>
+        <div class="receipt-list">
+            <h4>Recent Receipts</h4>
+            <div id="receiptsList"></div>
+        </div>
+    </section>
+
     <script>
         document.getElementById('recurring').addEventListener('change', e => {
           document.getElementById('recurrence').disabled = !e.target.checked;
         });
-      </script>      
+
+        // Show/hide custom date range inputs
+        document.getElementById('dateRange').addEventListener('change', e => {
+          const customRange = document.getElementById('customDateRange');
+          customRange.style.display = e.target.value === 'custom' ? 'block' : 'none';
+        });
+    </script>      
     <script src="app.js"></script>
 </body>
 </html>

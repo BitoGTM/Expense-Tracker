@@ -278,3 +278,140 @@ a{
         flex-direction: column;
     }
 }
+
+/* Export Section Styles */
+.export-container {
+    margin-top: 20px;
+}
+
+.export-form {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Currency Section Styles */
+.currency-container {
+    margin-top: 20px;
+}
+
+.currency-form {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Receipt Management Styles */
+.receipt-container {
+    margin-top: 20px;
+}
+
+.receipt-form {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.receipt-preview {
+    margin: 20px 0;
+    max-width: 300px;
+    max-height: 300px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.receipt-preview img {
+    width: 100%;
+    height: auto;
+}
+
+.receipt-details {
+    margin: 20px 0;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.receipt-list {
+    margin-top: 20px;
+}
+
+.receipt-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.receipt-item img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    margin-right: 15px;
+    border-radius: 4px;
+}
+
+.receipt-item-details {
+    flex-grow: 1;
+}
+
+.receipt-item-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Custom Date Range Styles */
+#customDateRange {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+#customDateRange input[type="date"] {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Button Styles */
+.buttonSave {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.buttonSave:hover {
+    background-color: #45a049;
+}
+
+/* Form Line Styles */
+.formLine {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.formLine span {
+    min-width: 120px;
+}
+
+.formLine select,
+.formLine input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    flex-grow: 1;
+}
