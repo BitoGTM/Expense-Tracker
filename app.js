@@ -96,6 +96,19 @@ let activeFilters = {
     month: 'all'
 };
 
+// Currency settings
+let baseCurrency = localStorage.getItem('baseCurrency') || 'USD';
+let exchangeRate = parseFloat(localStorage.getItem('exchangeRate')) || 1.0;
+
+// Receipts storage
+let receipts = JSON.parse(localStorage.getItem('receipts')) || [];
+
+// Initialize new features
+document.getElementById('exportBtn').addEventListener('click', handleExport);
+document.getElementById('updateCurrencyBtn').addEventListener('click', updateCurrencySettings);
+document.getElementById('receiptUpload').addEventListener('change', handleReceiptUpload);
+document.getElementById('processReceiptBtn').addEventListener('click', processReceipt);
+
 // Initialize the page
 initializePage();
 
@@ -118,7 +131,7 @@ function migrateRecurring() {
         cloned.nextDate = computeNextDate(new Date(exp.nextDate), exp.frequency)
                             .toISOString().substr(0,10);
         expenses.push(cloned);
-        // Advance original’s nextDate so we don’t loop
+        // Advance original's nextDate so we don't loop
         exp.nextDate = cloned.nextDate;
       }
     });
@@ -326,7 +339,7 @@ function showExpenses() {
                 <td>${filteredExpenses[i].paymentType}</td>
                 <td>${filteredExpenses[i].name}</td>
                 <td>${filteredExpenses[i].date}</td>
-                <td>$${filteredExpenses[i].amount.toFixed(2)}</td>
+                <td>${baseCurrency} ${(filteredExpenses[i].amount * exchangeRate).toFixed(2)}</td>
                 <td><a class="deleteButton" onclick="deleteExpense(${filteredExpenses[i].id})">
                     Delete</td>
             </tr>
@@ -641,3 +654,218 @@ function computeNextDate(dateObj, frequency) {
 
 // Call data migration function on load
 migrateOldData();
+
+// Export functionality
+async function handleExport() {
+    const exportType = document.getElementById('exportType').value;
+    const dateRange = document.getElementById('dateRange').value;
+    let startDate, endDate;
+
+    // Determine date range
+    if (dateRange === 'custom') {
+        startDate = new Date(document.getElementById('startDate').value);
+        endDate = new Date(document.getElementById('endDate').value);
+    } else {
+        const now = new Date();
+        switch(dateRange) {
+            case 'month':
+                startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                break;
+            case 'year':
+                startDate = new Date(now.getFullYear(), 0, 1);
+                endDate = new Date(now.getFullYear(), 11, 31);
+                break;
+            default: // 'all'
+                startDate = new Date(0);
+                endDate = new Date();
+        }
+    }
+
+    // Filter expenses for the date range
+    const filteredExpenses = expenses.filter(exp => {
+        const expDate = new Date(exp.date);
+        return expDate >= startDate && expDate <= endDate;
+    });
+
+    switch(exportType) {
+        case 'pdf':
+            exportToPDF(filteredExpenses);
+            break;
+        case 'excel':
+            exportToExcel(filteredExpenses);
+            break;
+        case 'email':
+            // Note: Email functionality would require a backend service
+            alert('Email export requires a backend service. Please use PDF or Excel export instead.');
+            break;
+    }
+}
+
+function exportToPDF(expenses) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(16);
+    doc.text('Expense Report', 20, 20);
+    
+    // Add date range
+    doc.setFontSize(12);
+    doc.text(`Report Period: ${new Date().toLocaleDateString()}`, 20, 30);
+    
+    // Add table headers
+    const headers = [['Category', 'Subcategory', 'Name', 'Date', 'Amount']];
+    const data = expenses.map(exp => [
+        exp.category,
+        exp.subcategory,
+        exp.name,
+        exp.date,
+        `${baseCurrency} ${(exp.amount * exchangeRate).toFixed(2)}`
+    ]);
+    
+    doc.autoTable({
+        head: headers,
+        body: data,
+        startY: 40,
+        theme: 'grid'
+    });
+    
+    // Save the PDF
+    doc.save('expense-report.pdf');
+}
+
+function exportToExcel(expenses) {
+    const ws = XLSX.utils.json_to_sheet(expenses.map(exp => ({
+        ...exp,
+        amount: `${baseCurrency} ${(exp.amount * exchangeRate).toFixed(2)}`
+    })));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Expenses");
+    XLSX.writeFile(wb, "expense-report.xlsx");
+}
+
+// Currency functionality
+function updateCurrencySettings() {
+    baseCurrency = document.getElementById('baseCurrency').value;
+    exchangeRate = parseFloat(document.getElementById('exchangeRate').value);
+    
+    localStorage.setItem('baseCurrency', baseCurrency);
+    localStorage.setItem('exchangeRate', exchangeRate);
+    
+    // Update all displayed amounts
+    showExpenses();
+    updateBudgetOverview();
+    
+    alert('Currency settings updated successfully!');
+}
+
+// Receipt management functionality
+function handleReceiptUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('receiptPreview');
+            preview.innerHTML = `<img src="${e.target.result}" alt="Receipt Preview">`;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+async function processReceipt() {
+    const fileInput = document.getElementById('receiptUpload');
+    if (!fileInput.files[0]) {
+        alert('Please upload a receipt first');
+        return;
+    }
+
+    const receiptDetails = document.getElementById('receiptDetails');
+    receiptDetails.innerHTML = 'Processing receipt...';
+
+    try {
+        const result = await Tesseract.recognize(
+            fileInput.files[0],
+            'eng',
+            { logger: m => console.log(m) }
+        );
+
+        // Extract relevant information using regex
+        const amount = extractAmount(result.data.text);
+        const date = extractDate(result.data.text);
+        const merchant = extractMerchant(result.data.text);
+
+        // Store receipt data
+        const receipt = {
+            id: Date.now(),
+            image: document.getElementById('receiptPreview').querySelector('img').src,
+            amount: amount,
+            date: date,
+            merchant: merchant,
+            processedDate: new Date().toISOString()
+        };
+
+        receipts.push(receipt);
+        localStorage.setItem('receipts', JSON.stringify(receipts));
+
+        // Display extracted information
+        receiptDetails.innerHTML = `
+            <h4>Extracted Information:</h4>
+            <p>Merchant: ${merchant}</p>
+            <p>Amount: ${amount}</p>
+            <p>Date: ${date}</p>
+        `;
+
+        // Update receipts list
+        updateReceiptsList();
+    } catch (error) {
+        receiptDetails.innerHTML = 'Error processing receipt. Please try again.';
+        console.error(error);
+    }
+}
+
+function extractAmount(text) {
+    const amountRegex = /\$?\d+\.\d{2}/;
+    const match = text.match(amountRegex);
+    return match ? match[0] : 'N/A';
+}
+
+function extractDate(text) {
+    const dateRegex = /\d{1,2}[-/]\d{1,2}[-/]\d{2,4}/;
+    const match = text.match(dateRegex);
+    return match ? match[0] : 'N/A';
+}
+
+function extractMerchant(text) {
+    // Simple heuristic: take the first line that's not a date or amount
+    const lines = text.split('\n');
+    for (const line of lines) {
+        if (!line.match(/\$?\d+\.\d{2}/) && !line.match(/\d{1,2}[-/]\d{1,2}[-/]\d{2,4}/)) {
+            return line.trim();
+        }
+    }
+    return 'Unknown Merchant';
+}
+
+function updateReceiptsList() {
+    const receiptsList = document.getElementById('receiptsList');
+    receiptsList.innerHTML = receipts.map(receipt => `
+        <div class="receipt-item">
+            <img src="${receipt.image}" alt="Receipt">
+            <div class="receipt-item-details">
+                <strong>${receipt.merchant}</strong><br>
+                Amount: ${receipt.amount}<br>
+                Date: ${receipt.date}
+            </div>
+            <div class="receipt-item-actions">
+                <button onclick="deleteReceipt(${receipt.id})" class="buttonSave">Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function deleteReceipt(id) {
+    receipts = receipts.filter(r => r.id !== id);
+    localStorage.setItem('receipts', JSON.stringify(receipts));
+    updateReceiptsList();
+}
