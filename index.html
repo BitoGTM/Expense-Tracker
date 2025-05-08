@@ -119,6 +119,34 @@
         </div>
     </section>
 
+    <!-- Smart Insights Section -->
+    <section class="content insights-container">
+        <h3 class="secondTitle">Smart Insights</h3>
+        <div class="insights-content">
+            <div class="insights-header">
+                <button id="refreshInsightsBtn" class="insight-btn">Refresh Insights</button>
+            </div>
+            <div class="insights-grid">
+                <div class="insight-card spending-trends">
+                    <h4>Spending Trends</h4>
+                    <div id="spendingTrends"></div>
+                </div>
+                <div class="insight-card budget-alerts">
+                    <h4>Budget Alerts</h4>
+                    <div id="budgetAlerts"></div>
+                </div>
+                <div class="insight-card recommendations">
+                    <h4>Smart Recommendations</h4>
+                    <div id="recommendations"></div>
+                </div>
+                <div class="insight-card category-analysis">
+                    <h4>Category Analysis</h4>
+                    <div id="categoryAnalysis"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Expense Table with Filters -->
     <section class="content">
         <h3 class="secondTitle">Expense List</h3>
@@ -139,6 +167,11 @@
             </div>
             <button id="applyFiltersBtn" class="filter-btn">Apply Filters</button>
             <button id="resetFiltersBtn" class="filter-btn">Reset</button>
+            <div class="import-export-group">
+                <button id="exportBtn" class="filter-btn">Export to CSV</button>
+                <input type="file" id="importFile" accept=".csv" style="display: none;">
+                <button id="importBtn" class="filter-btn">Import from CSV</button>
+            </div>
         </div>
         <table class="table">
             <thead>
