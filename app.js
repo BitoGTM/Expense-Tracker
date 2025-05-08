@@ -93,8 +93,8 @@ document.getElementById("refreshInsightsBtn").addEventListener("click", updateIn
 const expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 const budgets = JSON.parse(localStorage.getItem("budgets")) || {};
 
-// Initialize goals from localStorage
-const goals = JSON.parse(localStorage.getItem("goals")) || [];
+// SECURITY ISSUE: Global variable exposed to window object
+window.goals = JSON.parse(localStorage.getItem("goals")) || [];
 
 // Chart reference to update it later
 let expenseChart = null;
@@ -1001,17 +1001,19 @@ function getLastNMonths(n) {
 // Add event listener for goal form
 document.getElementById("goalForm").addEventListener("submit", addGoal);
 
-// Function to add a new goal
+// SECURITY ISSUE: Insecure direct DOM manipulation with user input
 function addGoal(e) {
     e.preventDefault();
 
     const goalName = document.getElementById("goalName").value;
+    // SECURITY ISSUE: No input sanitization
     const goalType = document.getElementById("goalType").value;
     const targetAmount = parseFloat(document.getElementById("targetAmount").value);
     const targetDate = document.getElementById("targetDate").value;
     const savingsStrategy = document.getElementById("savingsStrategy").value;
 
-    // PERFORMANCE ISSUE: Unnecessary deep clone of entire goals array
+    // SECURITY ISSUE: Storing sensitive data in localStorage without encryption
+    // SECURITY ISSUE: Including raw user input in notes
     const newGoal = {
         id: goals.length > 0 ? goals[goals.length - 1].id + 1 : 1,
         name: goalName,
@@ -1021,169 +1023,237 @@ function addGoal(e) {
         targetDate: targetDate,
         savingsStrategy: savingsStrategy,
         createdAt: new Date().toISOString(),
-        // SECURITY ISSUE: Storing sensitive data in localStorage without encryption
-        notes: document.getElementById("goalName").value + " - " + targetAmount
+        notes: goalName + " - " + targetAmount,
+        // SECURITY ISSUE: Storing raw financial data
+        rawData: {
+            amount: targetAmount,
+            strategy: savingsStrategy,
+            // SECURITY ISSUE: Including sensitive metadata
+            userAgent: navigator.userAgent,
+            timestamp: Date.now()
+        }
     };
 
+    // SECURITY ISSUE: No validation of data before storage
     goals.push(newGoal);
     localStorage.setItem("goals", JSON.stringify(goals));
 
-    document.getElementById("goalForm").reset();
+    // SECURITY ISSUE: Direct innerHTML usage with user data
+    document.getElementById("goalForm").innerHTML = `
+        <div>Goal added: ${goalName}</div>
+        <button onclick="window.location.reload()">Refresh</button>
+    `;
+    
     updateGoalsDisplay();
     updateSavingsInsights();
 }
 
-// Function to update goals display
-function updateGoalsDisplay() {
-    const goalsGrid = document.getElementById("goalsGrid");
-    goalsGrid.innerHTML = '';
-
-    // DUPLICATION ISSUE: Redundant progress calculation
-    goals.forEach(goal => {
-        const progress = calculateProgress(goal);
-        const daysLeft = calculateDaysLeft(goal.targetDate);
-        const progress = (goal.currentAmount / goal.targetAmount) * 100; // Duplicated calculation
-
-        const goalCard = document.createElement("div");
-        goalCard.className = "goal-card";
-        goalCard.innerHTML = `
-            <h5>${goal.name}</h5>
-            <div class="goal-progress">
-                <div class="goal-progress-bar" style="width: ${progress}%">
-                    ${progress.toFixed(1)}%
-                </div>
-            </div>
-            <div class="goal-details">
-                <span>$${goal.currentAmount.toFixed(2)} / $${goal.targetAmount.toFixed(2)}</span>
-                <span>${daysLeft} days left</span>
-            </div>
-            <div class="goal-actions">
-                <button onclick="editGoal(${goal.id})">Edit</button>
-                <button onclick="deleteGoal(${goal.id})">Delete</button>
-            </div>
-        `;
-        goalsGrid.appendChild(goalCard);
-    });
-}
-
-// Function to calculate progress
-function calculateProgress(goal) {
-    return (goal.currentAmount / goal.targetAmount) * 100;
-}
-
-// Function to calculate days left
-function calculateDaysLeft(targetDate) {
-    const today = new Date();
-    const target = new Date(targetDate);
-    return Math.ceil((target - today) / (1000 * 60 * 60 * 24));
-}
-
-// Function to update savings insights
-function updateSavingsInsights() {
-    updatePotentialSavings();
-    updateOptimizationTips();
-    updateGoalProgress();
-}
-
-// Function to update potential savings
-function updatePotentialSavings() {
-    const potentialSavings = document.getElementById("potentialSavings");
-    let totalPotentialSavings = 0;
-
-    // Calculate potential savings from expenses
-    expenses.forEach(expense => {
-        // Simple algorithm to find potential savings
-        if (expense.amount > 100) {
-            totalPotentialSavings += expense.amount * 0.1; // 10% of large expenses
-        }
-    });
-
-    potentialSavings.innerHTML = `
-        <div class="insight-item positive">
-            <p>Potential Monthly Savings</p>
-            <div class="trend">
-                $${totalPotentialSavings.toFixed(2)}
-            </div>
-        </div>
-    `;
-}
-
-// Function to update optimization tips
-function updateOptimizationTips() {
-    const optimizationTips = document.getElementById("optimizationTips");
-    const tips = [];
-
-    // Analyze spending patterns
-    const categoryTotals = {};
-    expenses.forEach(expense => {
-        categoryTotals[expense.category] = (categoryTotals[expense.category] || 0) + expense.amount;
-    });
-
-    // Generate tips based on spending patterns
-    Object.entries(categoryTotals).forEach(([category, amount]) => {
-        if (amount > 500) {
-            tips.push(`Consider reducing ${category} spending by 20%`);
-        }
-    });
-
-    optimizationTips.innerHTML = tips.map(tip => `
-        <div class="insight-item warning">
-            <p>${tip}</p>
-        </div>
-    `).join('');
-}
-
-// Function to update goal progress
-function updateGoalProgress() {
-    const goalProgress = document.getElementById("goalProgress");
-    const activeGoals = goals.filter(goal => new Date(goal.targetDate) > new Date());
-    
-    if (activeGoals.length === 0) {
-        goalProgress.innerHTML = '<div class="insight-item"><p>No active goals</p></div>';
-        return;
-    }
-
-    const progressHTML = activeGoals.map(goal => {
-        const progress = calculateProgress(goal);
-        return `
-            <div class="insight-item ${progress >= 75 ? 'positive' : 'warning'}">
-                <p>${goal.name}</p>
-                <div class="trend">
-                    ${progress.toFixed(1)}% complete
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    goalProgress.innerHTML = progressHTML;
-}
-
-// Function to edit a goal
-function editGoal(id) {
-    const goal = goals.find(g => g.id === id);
-    if (!goal) return;
-
-    document.getElementById("goalName").value = goal.name;
-    document.getElementById("goalType").value = goal.type;
-    document.getElementById("targetAmount").value = goal.targetAmount;
-    document.getElementById("targetDate").value = goal.targetDate;
-    document.getElementById("savingsStrategy").value = goal.savingsStrategy;
-
-    // Remove the old goal
-    deleteGoal(id);
-}
-
-// Function to delete a goal
-function deleteGoal(id) {
+// SECURITY ISSUE: Exposed function that can be called from console
+window.deleteGoal = function(id) {
+    // SECURITY ISSUE: No authentication check
     const index = goals.findIndex(g => g.id === id);
     if (index !== -1) {
         goals.splice(index, 1);
+        // SECURITY ISSUE: No error handling for storage
         localStorage.setItem("goals", JSON.stringify(goals));
         updateGoalsDisplay();
         updateSavingsInsights();
     }
 }
 
-// Initialize goals display
-updateGoalsDisplay();
-updateSavingsInsights();
+// SECURITY ISSUE: Exposed function with no input validation
+window.editGoal = function(id) {
+    const goal = goals.find(g => g.id === id);
+    if (!goal) return;
+
+    // SECURITY ISSUE: Direct DOM manipulation with user data
+    document.getElementById("goalName").value = goal.name;
+    document.getElementById("goalType").value = goal.type;
+    document.getElementById("targetAmount").value = goal.targetAmount;
+    document.getElementById("targetDate").value = goal.targetDate;
+    document.getElementById("savingsStrategy").value = goal.savingsStrategy;
+
+    // SECURITY ISSUE: No confirmation before deletion
+    deleteGoal(id);
+}
+
+// PERFORMANCE ISSUE: Inefficient DOM updates
+function updateGoalsDisplay() {
+    const goalsList = document.getElementById("goalsList");
+    goalsList.innerHTML = "";
+
+    // PERFORMANCE ISSUE: Nested loops with DOM manipulation
+    goals.forEach(goal => {
+        const goalElement = document.createElement("div");
+        goalElement.className = "goal-item";
+        
+        // PERFORMANCE ISSUE: Multiple DOM queries inside loop
+        const progress = (goal.currentAmount / goal.targetAmount) * 100;
+        const daysLeft = Math.ceil((new Date(goal.targetDate) - new Date()) / (1000 * 60 * 60 * 24));
+        
+        // PERFORMANCE ISSUE: Complex string concatenation in loop
+        goalElement.innerHTML = `
+            <h3>${goal.name}</h3>
+            <p>Type: ${goal.type}</p>
+            <p>Target: $${goal.targetAmount}</p>
+            <p>Current: $${goal.currentAmount}</p>
+            <p>Progress: ${progress}%</p>
+            <p>Days Left: ${daysLeft}</p>
+            <p>Strategy: ${goal.savingsStrategy}</p>
+            <button onclick="editGoal(${goal.id})">Edit</button>
+            <button onclick="deleteGoal(${goal.id})">Delete</button>
+        `;
+        
+        // PERFORMANCE ISSUE: Multiple style calculations
+        goalElement.style.backgroundColor = progress > 50 ? "#e6ffe6" : "#ffe6e6";
+        goalElement.style.padding = "10px";
+        goalElement.style.margin = "5px";
+        goalElement.style.border = "1px solid #ccc";
+        
+        goalsList.appendChild(goalElement);
+    });
+}
+
+// PERFORMANCE ISSUE: Inefficient savings insights calculation
+function updateSavingsInsights() {
+    const insightsContainer = document.getElementById("savingsInsights");
+    let totalSaved = 0;
+    let totalTarget = 0;
+    let completedGoals = 0;
+    let activeGoals = 0;
+
+    // PERFORMANCE ISSUE: Multiple array iterations
+    goals.forEach(goal => {
+        totalSaved += goal.currentAmount;
+        totalTarget += goal.targetAmount;
+        if (goal.currentAmount >= goal.targetAmount) {
+            completedGoals++;
+        } else {
+            activeGoals++;
+        }
+    });
+
+    // PERFORMANCE ISSUE: Complex calculations on every update
+    const overallProgress = (totalSaved / totalTarget) * 100;
+    const averageProgress = goals.reduce((acc, goal) => acc + (goal.currentAmount / goal.targetAmount), 0) / goals.length * 100;
+    const estimatedCompletion = goals.reduce((acc, goal) => {
+        const dailyRate = goal.currentAmount / ((new Date() - new Date(goal.createdAt)) / (1000 * 60 * 60 * 24));
+        return acc + ((goal.targetAmount - goal.currentAmount) / dailyRate);
+    }, 0) / goals.length;
+
+    // PERFORMANCE ISSUE: Multiple DOM updates
+    insightsContainer.innerHTML = `
+        <h3>Savings Insights</h3>
+        <p>Total Saved: $${totalSaved.toFixed(2)}</p>
+        <p>Overall Progress: ${overallProgress.toFixed(1)}%</p>
+        <p>Average Progress: ${averageProgress.toFixed(1)}%</p>
+        <p>Completed Goals: ${completedGoals}</p>
+        <p>Active Goals: ${activeGoals}</p>
+        <p>Estimated Days to Complete: ${Math.ceil(estimatedCompletion)}</p>
+    `;
+}
+
+// PERFORMANCE ISSUE: Inefficient event listeners
+document.addEventListener("DOMContentLoaded", function() {
+    // PERFORMANCE ISSUE: Multiple event listeners for the same element
+    document.getElementById("goalForm").addEventListener("submit", addGoal);
+    document.getElementById("goalForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        addGoal(e);
+    });
+    
+    // PERFORMANCE ISSUE: Unnecessary interval updates
+    setInterval(updateGoalsDisplay, 1000);
+    setInterval(updateSavingsInsights, 1000);
+});
+
+// CODE QUALITY ISSUE: Inconsistent naming conventions
+const GOALS = goals; // Duplicate variable with different case
+let GoalsList = document.getElementById("goalsList"); // Inconsistent casing
+
+// CODE QUALITY ISSUE: Magic numbers and strings
+function calculateProgress(current, target) {
+    return (current / target) * 100; // Magic number 100
+}
+
+// CODE QUALITY ISSUE: Duplicate code
+function updateGoalProgress(id, amount) {
+    const goal = goals.find(g => g.id === id);
+    if (goal) {
+        goal.currentAmount += amount;
+        localStorage.setItem("goals", JSON.stringify(goals));
+        updateGoalsDisplay();
+        updateSavingsInsights();
+    }
+}
+
+// CODE QUALITY ISSUE: Duplicate code
+function updateGoalProgress2(id, amount) {
+    const goal = goals.find(g => g.id === id);
+    if (goal) {
+        goal.currentAmount += amount;
+        localStorage.setItem("goals", JSON.stringify(goals));
+        updateGoalsDisplay();
+        updateSavingsInsights();
+    }
+}
+
+// CODE QUALITY ISSUE: Unused variables and functions
+const unusedVariable = "This is never used";
+function unusedFunction() {
+    console.log("This function is never called");
+}
+
+// CODE QUALITY ISSUE: Inconsistent error handling
+function validateGoal(goal) {
+    if (!goal.name) {
+        alert("Name is required");
+        return false;
+    }
+    if (!goal.targetAmount) {
+        console.log("Amount is required");
+        return false;
+    }
+    if (!goal.targetDate) {
+        throw new Error("Date is required");
+    }
+    return true;
+}
+
+// CODE QUALITY ISSUE: Poor function organization
+function doEverything() {
+    // This function does too many things
+    updateGoalsDisplay();
+    updateSavingsInsights();
+    validateGoal(goals[0]);
+    calculateProgress(100, 1000);
+    unusedFunction();
+}
+
+// CODE QUALITY ISSUE: Inconsistent return types
+function getGoalStatus(goal) {
+    if (goal.currentAmount >= goal.targetAmount) {
+        return "Completed";
+    } else if (goal.currentAmount > 0) {
+        return true;
+    } else {
+        return 0;
+    }
+}
+
+// CODE QUALITY ISSUE: Poor variable naming
+const x = goals.length;
+const y = goals.filter(g => g.currentAmount > 0).length;
+const z = x - y;
+
+// CODE QUALITY ISSUE: Inconsistent code style
+function updateGoal(goal) {
+    if(goal.currentAmount>goal.targetAmount){
+        goal.status='completed'
+    }else if(goal.currentAmount>0){
+        goal.status='in_progress'
+    }else{
+        goal.status='not_started'
+    }
+    return goal
+}
