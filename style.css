@@ -388,3 +388,101 @@ a{
 .insight-item .trend.negative {
     color: #F44336;
 }
+
+/* Goals Section Styles */
+.goals-container {
+    margin-top: 20px;
+}
+
+.goal-form {
+    background-color: #042159;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.goal-form h4 {
+    color: #fff;
+    margin-bottom: 15px;
+}
+
+.goals-overview {
+    margin-top: 20px;
+}
+
+.goals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.goal-card {
+    background-color: #042159;
+    border-radius: 5px;
+    padding: 15px;
+    position: relative;
+}
+
+.goal-card h5 {
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.goal-progress {
+    background-color: #0869A6;
+    border-radius: 10px;
+    height: 20px;
+    margin: 10px 0;
+    overflow: hidden;
+}
+
+.goal-progress-bar {
+    height: 100%;
+    background-color: #04BF8A;
+    transition: width 0.3s ease;
+    text-align: center;
+    line-height: 20px;
+    color: white;
+    font-size: 0.8em;
+}
+
+.goal-details {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #fff;
+}
+
+.goal-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.goal-actions button {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    margin-left: 5px;
+    padding: 5px;
+}
+
+.goal-actions button:hover {
+    color: #04BF8A;
+}
+
+.savings-insights {
+    margin-top: 20px;
+}
+
+.savings-insights .insight-card {
+    min-height: 150px;
+}
+
+.savings-insights h5 {
+    color: #fff;
+    margin-bottom: 10px;
+}
