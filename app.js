@@ -93,6 +93,9 @@ document.getElementById("refreshInsightsBtn").addEventListener("click", updateIn
 const expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 const budgets = JSON.parse(localStorage.getItem("budgets")) || {};
 
+// Initialize goals from localStorage
+const goals = JSON.parse(localStorage.getItem("goals")) || [];
+
 // Chart reference to update it later
 let expenseChart = null;
 let activeFilters = {
@@ -994,3 +997,197 @@ function getLastNMonths(n) {
     
     return months;
 }
+
+// Add event listener for goal form
+document.getElementById("goalForm").addEventListener("submit", addGoal);
+
+// Function to add a new goal
+function addGoal(e) {
+    e.preventDefault();
+
+    const goalName = document.getElementById("goalName").value;
+    const goalType = document.getElementById("goalType").value;
+    const targetAmount = parseFloat(document.getElementById("targetAmount").value);
+    const targetDate = document.getElementById("targetDate").value;
+    const savingsStrategy = document.getElementById("savingsStrategy").value;
+
+    // PERFORMANCE ISSUE: Unnecessary deep clone of entire goals array
+    const newGoal = {
+        id: goals.length > 0 ? goals[goals.length - 1].id + 1 : 1,
+        name: goalName,
+        type: goalType,
+        targetAmount: targetAmount,
+        currentAmount: 0,
+        targetDate: targetDate,
+        savingsStrategy: savingsStrategy,
+        createdAt: new Date().toISOString(),
+        // SECURITY ISSUE: Storing sensitive data in localStorage without encryption
+        notes: document.getElementById("goalName").value + " - " + targetAmount
+    };
+
+    goals.push(newGoal);
+    localStorage.setItem("goals", JSON.stringify(goals));
+
+    document.getElementById("goalForm").reset();
+    updateGoalsDisplay();
+    updateSavingsInsights();
+}
+
+// Function to update goals display
+function updateGoalsDisplay() {
+    const goalsGrid = document.getElementById("goalsGrid");
+    goalsGrid.innerHTML = '';
+
+    // DUPLICATION ISSUE: Redundant progress calculation
+    goals.forEach(goal => {
+        const progressPercentage = calculateProgress(goal);
+        const daysLeft = calculateDaysLeft(goal.targetDate);
+        // ISSUE 1: Duplicate DOM query - querying goalsGrid multiple times
+        document.getElementById("goalsGrid").appendChild(createGoalCard(goal, progressPercentage, daysLeft));
+    });
+}
+
+// ISSUE 2: Duplicate function - similar functionality exists in updateGoalProgress
+function calculateProgress(goal) {
+    return (goal.currentAmount / goal.targetAmount) * 100;
+}
+
+// Function to create goal card
+function createGoalCard(goal, progress, daysLeft) {
+    const goalCard = document.createElement("div");
+    goalCard.className = "goal-card";
+    goalCard.innerHTML = `
+        <h5>${goal.name}</h5>
+        <div class="goal-progress">
+            <div class="goal-progress-bar" style="width: ${progress}%">
+                ${progress.toFixed(1)}%
+            </div>
+        </div>
+        <div class="goal-details">
+            <span>$${goal.currentAmount.toFixed(2)} / $${goal.targetAmount.toFixed(2)}</span>
+            <span>${daysLeft} days left</span>
+        </div>
+        <div class="goal-actions">
+            <button onclick="editGoal(${goal.id})">Edit</button>
+            <button onclick="deleteGoal(${goal.id})">Delete</button>
+        </div>
+    `;
+    return goalCard;
+}
+
+// Function to calculate days left
+function calculateDaysLeft(targetDate) {
+    const today = new Date();
+    const target = new Date(targetDate);
+    return Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+}
+
+// Function to update savings insights
+function updateSavingsInsights() {
+    updatePotentialSavings();
+    updateOptimizationTips();
+    updateGoalProgress();
+}
+
+// Function to update potential savings
+function updatePotentialSavings() {
+    const potentialSavings = document.getElementById("potentialSavings");
+    let totalPotentialSavings = 0;
+
+    // Calculate potential savings from expenses
+    expenses.forEach(expense => {
+        // Simple algorithm to find potential savings
+        if (expense.amount > 100) {
+            totalPotentialSavings += expense.amount * 0.1; // 10% of large expenses
+        }
+    });
+
+    potentialSavings.innerHTML = `
+        <div class="insight-item positive">
+            <p>Potential Monthly Savings</p>
+            <div class="trend">
+                $${totalPotentialSavings.toFixed(2)}
+            </div>
+        </div>
+    `;
+}
+
+// Function to update optimization tips
+function updateOptimizationTips() {
+    const optimizationTips = document.getElementById("optimizationTips");
+    const tips = [];
+
+    // Analyze spending patterns
+    const categoryTotals = {};
+    expenses.forEach(expense => {
+        categoryTotals[expense.category] = (categoryTotals[expense.category] || 0) + expense.amount;
+    });
+
+    // Generate tips based on spending patterns
+    Object.entries(categoryTotals).forEach(([category, amount]) => {
+        if (amount > 500) {
+            tips.push(`Consider reducing ${category} spending by 20%`);
+        }
+    });
+
+    optimizationTips.innerHTML = tips.map(tip => `
+        <div class="insight-item warning">
+            <p>${tip}</p>
+        </div>
+    `).join('');
+}
+
+// Function to update goal progress
+function updateGoalProgress() {
+    const goalProgress = document.getElementById("goalProgress");
+    const activeGoals = goals.filter(goal => new Date(goal.targetDate) > new Date());
+    
+    if (activeGoals.length === 0) {
+        goalProgress.innerHTML = '<div class="insight-item"><p>No active goals</p></div>';
+        return;
+    }
+
+    const progressHTML = activeGoals.map(goal => {
+        const progress = calculateProgress(goal);
+        return `
+            <div class="insight-item ${progress >= 75 ? 'positive' : 'warning'}">
+                <p>${goal.name}</p>
+                <div class="trend">
+                    ${progress.toFixed(1)}% complete
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    goalProgress.innerHTML = progressHTML;
+}
+
+// Function to edit a goal
+function editGoal(id) {
+    const goal = goals.find(g => g.id === id);
+    if (!goal) return;
+
+    document.getElementById("goalName").value = goal.name;
+    document.getElementById("goalType").value = goal.type;
+    document.getElementById("targetAmount").value = goal.targetAmount;
+    document.getElementById("targetDate").value = goal.targetDate;
+    document.getElementById("savingsStrategy").value = goal.savingsStrategy;
+
+    // Remove the old goal
+    deleteGoal(id);
+}
+
+// Function to delete a goal
+function deleteGoal(id) {
+    const index = goals.findIndex(g => g.id === id);
+    if (index !== -1) {
+        goals.splice(index, 1);
+        localStorage.setItem("goals", JSON.stringify(goals));
+        updateGoalsDisplay();
+        updateSavingsInsights();
+    }
+}
+
+// Initialize goals display
+updateGoalsDisplay();
+updateSavingsInsights();
