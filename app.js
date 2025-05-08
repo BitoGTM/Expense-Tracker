@@ -1040,39 +1040,35 @@ function updateGoalsDisplay() {
 
     // DUPLICATION ISSUE: Redundant progress calculation
     goals.forEach(goal => {
-        const progressPercentage = calculateProgress(goal);
+        const progress = calculateProgress(goal);
         const daysLeft = calculateDaysLeft(goal.targetDate);
-        // ISSUE 1: Duplicate DOM query - querying goalsGrid multiple times
-        document.getElementById("goalsGrid").appendChild(createGoalCard(goal, progressPercentage, daysLeft));
+        const progress = (goal.currentAmount / goal.targetAmount) * 100; // Duplicated calculation
+
+        const goalCard = document.createElement("div");
+        goalCard.className = "goal-card";
+        goalCard.innerHTML = `
+            <h5>${goal.name}</h5>
+            <div class="goal-progress">
+                <div class="goal-progress-bar" style="width: ${progress}%">
+                    ${progress.toFixed(1)}%
+                </div>
+            </div>
+            <div class="goal-details">
+                <span>$${goal.currentAmount.toFixed(2)} / $${goal.targetAmount.toFixed(2)}</span>
+                <span>${daysLeft} days left</span>
+            </div>
+            <div class="goal-actions">
+                <button onclick="editGoal(${goal.id})">Edit</button>
+                <button onclick="deleteGoal(${goal.id})">Delete</button>
+            </div>
+        `;
+        goalsGrid.appendChild(goalCard);
     });
 }
 
-// ISSUE 2: Duplicate function - similar functionality exists in updateGoalProgress
+// Function to calculate progress
 function calculateProgress(goal) {
     return (goal.currentAmount / goal.targetAmount) * 100;
-}
-
-// Function to create goal card
-function createGoalCard(goal, progress, daysLeft) {
-    const goalCard = document.createElement("div");
-    goalCard.className = "goal-card";
-    goalCard.innerHTML = `
-        <h5>${goal.name}</h5>
-        <div class="goal-progress">
-            <div class="goal-progress-bar" style="width: ${progress}%">
-                ${progress.toFixed(1)}%
-            </div>
-        </div>
-        <div class="goal-details">
-            <span>$${goal.currentAmount.toFixed(2)} / $${goal.targetAmount.toFixed(2)}</span>
-            <span>${daysLeft} days left</span>
-        </div>
-        <div class="goal-actions">
-            <button onclick="editGoal(${goal.id})">Edit</button>
-            <button onclick="deleteGoal(${goal.id})">Delete</button>
-        </div>
-    `;
-    return goalCard;
 }
 
 // Function to calculate days left
